@@ -6,20 +6,23 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include<readline/readline.h>
+#include <readline/readline.h>
 
 #include "command.h"
 #include "matrix.h"
 
 void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats);
-unsigned int find_matrix_given_name (Matrix_t** mats, unsigned int num_mats, 
-			const char* target);
+unsigned int find_matrix_given_name (Matrix_t** mats, unsigned int num_mats, const char* target);
 
 // TODO complete the defintion of this function. 
 void destroy_remaining_heap_allocations(Matrix_t **mats, unsigned int num_mats);
 
-	//TODO FUNCTION COMMENT
-int main (int argc, char **argv) {
+/*
+ * PURPOSE: the entry of execution
+ * INPUTS: int argc, char **argv
+ * RETURN: 0 upon success, something else otherwise
+ */
+int main(int argc, char **argv) {
 	srand(time(NULL));		
 	char *line = NULL;
 	Commands_t* cmd;
@@ -60,8 +63,12 @@ int main (int argc, char **argv) {
 	return 0;	
 }
 
-	//TODO FUNCTION COMMENT
-void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
+/*
+ * PURPOSE: runs commands
+ * INPUTS: a pointer of type Commands_t, an address to a pointer of type Matrix_t, and an unsigned int representing the number of matrices
+ * RETURN: void
+ */
+void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 	//TODO ERROR CHECK INCOMING PARAMETERS
 
 
@@ -78,13 +85,13 @@ void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 				return;
 			}
 	}
-	else if (strncmp(cmd->cmds[0],"add",strlen("add") + 1) == 0
+	else if (strncmp(cmd->cmds[0], "add", strlen("add") + 1) == 0
 		&& cmd->num_cmds == 4) {
-			int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
-			int mat2_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[2]);
+			int mat1_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[1]);
+			int mat2_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[2]);
 			if (mat1_idx >= 0 && mat2_idx >= 0) {
 				Matrix_t* c = NULL;
-				if( !create_matrix (&c,cmd->cmds[3], mats[mat1_idx]->rows, 
+				if ( !create_matrix(&c,cmd->cmds[3], mats[mat1_idx]->rows, 
 						mats[mat1_idx]->cols)) {
 					printf("Failure to create the result Matrix (%s)\n", cmd->cmds[3]);
 					return;
@@ -93,13 +100,13 @@ void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 				add_matrix_to_array(mats,c, num_mats); //TODO ERROR CHECK NEEDED
 
 
-				if (! add_matrices(mats[mat1_idx], mats[mat2_idx],c) ) {
+				if (! add_matrices(mats[mat1_idx], mats[mat2_idx], c) ) {
 					printf("Failure to add %s with %s into %s\n", mats[mat1_idx]->name, mats[mat2_idx]->name,c->name);
 					return;	
 				}
 			}
 	}
-	else if (strncmp(cmd->cmds[0],"duplicate",strlen("duplicate") + 1) == 0
+	else if (strncmp(cmd->cmds[0], "duplicate", strlen("duplicate") + 1) == 0
 		&& cmd->num_cmds == 2 && strlen(cmd->cmds[1]) + 1 <= MATRIX_NAME_LEN) {
 		int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
 		if (mat1_idx >= 0 ) {
@@ -110,14 +117,14 @@ void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 				}
 				duplicate_matrix (mats[mat1_idx], dup_mat); //TODO ERROR CHECK NEEDED
 				add_matrix_to_array(mats,dup_mat,num_mats); //TODO ERROR CHECK NEEDED
-				printf ("Duplication of %s into %s finished\n", mats[mat1_idx]->name, cmd->cmds[2]);
+				printf("Duplication of %s into %s finished\n", mats[mat1_idx]->name, cmd->cmds[2]);
 		}
 		else {
 			printf("Duplication Failed\n");
 			return;
 		}
 	}
-	else if (strncmp(cmd->cmds[0],"equal",strlen("equal") + 1) == 0
+	else if (strncmp(cmd->cmds[0], "equal", strlen("equal") + 1) == 0
 		&& cmd->num_cmds == 2) {
 			int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
 			int mat2_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[2]);
@@ -195,8 +202,12 @@ void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 
 }
 
-	//TODO FUNCTION COMMENT
-unsigned int find_matrix_given_name (Matrix_t** mats, unsigned int num_mats, const char* target) {
+/*
+ * PURPOSE: finds matrix with of given name
+ * INPUTS: an address to a pointer of type Matrix_t, an unsigned integer for the number of matrices, and the name of the matrix
+ * RETURN: upon success returns the index of the matrix, otherwise returns -1
+ */
+unsigned int find_matrix_given_name(Matrix_t** mats, unsigned int num_mats, const char* target) {
 	//TODO ERROR CHECK INCOMING PARAMETERS
 
 	for (int i = 0; i < num_mats; ++i) {
@@ -207,7 +218,11 @@ unsigned int find_matrix_given_name (Matrix_t** mats, unsigned int num_mats, con
 	return -1;
 }
 
-	//TODO FUNCTION COMMENT
+/*
+ * PURPOSE: destroys remaining heap allocations
+ * INPUTS: an address to a pointer of type Matrix_t and an unsigned integer for the number of matrices
+ * RETURN: void
+ */
 void destroy_remaining_heap_allocations(Matrix_t **mats, unsigned int num_mats) {
 	
 	//TODO ERROR CHECK INCOMING PARAMETERS

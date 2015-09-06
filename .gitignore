@@ -30,3 +30,7 @@
 
 # Debug files
 *.dSYM/
+
+matlab
+temp_mat
+
