@@ -1,6 +1,6 @@
 all: matlab
 
-CFLAGS= -Wall -g -std=c99 
+CFLAGS= -Wall -g -std=c99 -D_GNU_SOURCE 
 LIBS= -lreadline
 
 matlab: main.o command.o matrix.o
