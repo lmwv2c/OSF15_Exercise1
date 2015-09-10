@@ -33,7 +33,7 @@ bool create_matrix(Matrix_t** new_matrix, const char* name, const unsigned int r
 
 	//TODO ERROR CHECK INCOMING PARAMETERS
 
-	*new_matrix = calloc(1,sizeof(Matrix_t));
+	*new_matrix = calloc(1, sizeof(Matrix_t));
 	if (!(*new_matrix)) {
 		return false;
 	}
@@ -59,11 +59,13 @@ bool create_matrix(Matrix_t** new_matrix, const char* name, const unsigned int r
  */
 void destroy_matrix(Matrix_t** m) {
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
-	
-	free((*m)->data);
-	free(*m);
-	*m = NULL;
+	if (m) {
+		if (*m) {
+			free((*m)->data);
+			free(*m);
+			*m = NULL;
+		}		
+	}
 }
 
 
@@ -173,7 +175,7 @@ bool add_matrices(Matrix_t* a, Matrix_t* b, Matrix_t* c) {
  *  m the matrix to be displayed
  * RETURN: void
  */
-void display_matrix (Matrix_t* m) {
+void display_matrix(Matrix_t* m) {
 	
 	//TODO ERROR CHECK INCOMING PARAMETERS
 
@@ -242,7 +244,7 @@ bool read_matrix(const char* matrix_input_filename, Matrix_t** m) {
 		return false;
 	}
 	char name_buffer[50];
-	if (read (fd,name_buffer,sizeof(char) * name_len) != sizeof(char) * name_len) {
+	if (read(fd, name_buffer, sizeof(char) * name_len) != sizeof(char) * name_len) {
 		printf("FAILED TO READ MATRIX NAME\n");
 		if (errno == EACCES ) {
 			perror("DO NOT HAVE ACCESS TO FILE\n");
@@ -260,12 +262,12 @@ bool read_matrix(const char* matrix_input_filename, Matrix_t** m) {
 		return false;	
 	}
 
-	if (read (fd, &rows, sizeof(unsigned int)) != sizeof(unsigned int)) {
+	if (read(fd, &rows, sizeof(unsigned int)) != sizeof(unsigned int)) {
 		printf("FAILED TO READ MATRIX ROW SIZE\n");
-		if (errno == EACCES ) {
+		if (errno == EACCES) {
 			perror("DO NOT HAVE ACCESS TO FILE\n");
 		}
-		else if (errno == EADDRINUSE ){
+		else if (errno == EADDRINUSE){
 			perror("FILE ALREADY IN USE\n");
 		}
 		else if (errno == EBADF) {
@@ -444,9 +446,18 @@ void load_matrix(Matrix_t* m, unsigned int* data) {
  */
 unsigned int add_matrix_to_array(Matrix_t** mats, Matrix_t* new_matrix, unsigned int num_mats) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	
 	static long int current_position = 0;
 	const long int pos = current_position % num_mats;
+
+	//TODO ERROR CHECK INCOMING PARAMETERS
+
+	if (!mats) {
+		// TODO: Complete Error Checking
+		printf("\n\nHolder AX48, add_matrix_to_array\n\n");
+	}
+
+
 	if (mats[pos]) {
 		destroy_matrix(&mats[pos]);
 	} 

@@ -28,10 +28,14 @@ int main(int argc, char **argv) {
 	Commands_t* cmd;
 
 	Matrix_t *mats[10];
-	memset(&mats,0, sizeof(Matrix_t*) * 10); // IMPORTANT C FUNCTION TO LEARN
+	memset(&mats, 0, sizeof(Matrix_t*) * 10); // IMPORTANT C FUNCTION TO LEARN
 
 	Matrix_t *temp = NULL;
-	create_matrix (&temp,"temp_mat", 5, 5); // TODO ERROR CHECK
+	
+	if (!create_matrix(&temp, "temp_mat", 5, 5)) {
+		// TODO: Complete Error Check for this condition
+	}
+
 	add_matrix_to_array(mats,temp, 10); //TODO ERROR CHECK NEEDED
 	int mat_idx = find_matrix_given_name(mats,10,"temp_mat");
 
@@ -45,7 +49,7 @@ int main(int argc, char **argv) {
 	line = readline("> ");
 	while (strncmp(line,"exit", strlen("exit")  + 1) != 0) {
 		
-		if (!parse_user_input(line,&cmd)) {
+		if (!parse_user_input(line, &cmd)) {
 			printf("Failed at parsing command\n\n");
 		}
 		
@@ -59,7 +63,7 @@ int main(int argc, char **argv) {
 		line = readline("> ");
 	}
 	free(line);
-	destroy_remaining_heap_allocations(mats,10);
+	destroy_remaining_heap_allocations(mats, 10);
 	return 0;	
 }
 
@@ -228,4 +232,8 @@ void destroy_remaining_heap_allocations(Matrix_t **mats, unsigned int num_mats) 
 	//TODO ERROR CHECK INCOMING PARAMETERS
 
 	// COMPLETE MISSING MEMORY CLEARING HERE
+
+	for (unsigned int i = 0; i < num_mats; ++i) {
+		destroy_matrix(&mats[i]);
+	}
 }
