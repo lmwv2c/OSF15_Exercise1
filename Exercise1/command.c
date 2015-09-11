@@ -16,7 +16,9 @@
  */
 bool parse_user_input(const char* input, Commands_t** cmd) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	if (!input) {
+		return false;
+	}
 
 	char *string = strdup(input);
 	
@@ -47,13 +49,13 @@ bool parse_user_input(const char* input, Commands_t** cmd) {
  */
 void destroy_commands(Commands_t** cmd) {
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
-	
-	for (int i = 0; i < (*cmd)->num_cmds; ++i) {
-		free((*cmd)->cmds[i]);
+	if (cmd) {
+		for (int i = 0; i < (*cmd)->num_cmds; ++i) {
+			free((*cmd)->cmds[i]);
+		}
+		free((*cmd)->cmds);
+		free((*cmd));
+		*cmd = NULL;
 	}
-	free((*cmd)->cmds);
-	free((*cmd));
-	*cmd = NULL;
 }
 

@@ -11,14 +11,11 @@
 #include "command.h"
 #include "matrix.h"
 
-void run_commands (Commands_t* cmd, Matrix_t** mats, unsigned int num_mats);
-unsigned int find_matrix_given_name (Matrix_t** mats, unsigned int num_mats, const char* target);
-
-// TODO complete the defintion of this function. 
+void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats);
+unsigned int find_matrix_given_name(Matrix_t** mats, unsigned int num_mats, const char* target);
 void destroy_remaining_heap_allocations(Matrix_t **mats, unsigned int num_mats);
 
-/*
- * PURPOSE: the entry of execution
+/* PURPOSE: the entry of execution
  * INPUTS: int argc, char **argv
  * RETURN: 0 upon success, something else otherwise
  */
@@ -33,10 +30,11 @@ int main(int argc, char **argv) {
 	Matrix_t *temp = NULL;
 	
 	if (!create_matrix(&temp, "temp_mat", 5, 5)) {
-		// TODO: Complete Error Check for this condition
+		perror("Allocation Error\n");
+		return -1;
 	}
 
-	add_matrix_to_array(mats,temp, 10); //TODO ERROR CHECK NEEDED
+	add_matrix_to_array(mats, temp, 10);
 	int mat_idx = find_matrix_given_name(mats,10,"temp_mat");
 
 	if (mat_idx < 0) {
@@ -44,7 +42,9 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 	random_matrix(mats[mat_idx], 10, 15);
-	write_matrix("temp_mat", mats[mat_idx]); // TODO ERROR CHECK
+	if (!write_matrix("temp_mat", mats[mat_idx])) {
+		perror("Matrix couldn't be written\n");
+	}
 
 	line = readline("> ");
 	while (strncmp(line,"exit", strlen("exit")  + 1) != 0) {
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		}
 		
 		if (cmd->num_cmds > 1) {	
-			run_commands(cmd,mats,10);
+			run_commands(cmd, mats, 10);
 		}
 		if (line) {
 			free(line);
@@ -67,20 +67,21 @@ int main(int argc, char **argv) {
 	return 0;	
 }
 
-/*
- * PURPOSE: runs commands
+/* PURPOSE: runs commands
  * INPUTS: a pointer of type Commands_t, an address to a pointer of type Matrix_t, and an unsigned int representing the number of matrices
  * RETURN: void
  */
 void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
+	if (!cmd || !mats) {
+            perror("Commands are needed\n");
+            return;
+        }
 
 	/*Parsing and calling of commands*/
 	if (strncmp(cmd->cmds[0],"display",strlen("display") + 1) == 0
 		&& cmd->num_cmds == 2) {
 			/*find the requested matrix*/
-			int idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
+			int idx = find_matrix_given_name(mats, num_mats, cmd->cmds[1]);
 			if (idx >= 0) {
 				display_matrix (mats[idx]);
 			}
@@ -101,7 +102,7 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 					return;
 				}
 			
-				add_matrix_to_array(mats,c, num_mats); //TODO ERROR CHECK NEEDED
+				add_matrix_to_array(mats, c, num_mats);
 
 
 				if (! add_matrices(mats[mat1_idx], mats[mat2_idx], c) ) {
@@ -119,8 +120,8 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 						mats[mat1_idx]->cols)) {
 					return;
 				}
-				duplicate_matrix (mats[mat1_idx], dup_mat); //TODO ERROR CHECK NEEDED
-				add_matrix_to_array(mats,dup_mat,num_mats); //TODO ERROR CHECK NEEDED
+				duplicate_matrix(mats[mat1_idx], dup_mat); //TODO ERROR CHECK NEEDED
+				add_matrix_to_array(mats, dup_mat, num_mats);
 				printf("Duplication of %s into %s finished\n", mats[mat1_idx]->name, cmd->cmds[2]);
 		}
 		else {
@@ -130,10 +131,10 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 	}
 	else if (strncmp(cmd->cmds[0], "equal", strlen("equal") + 1) == 0
 		&& cmd->num_cmds == 2) {
-			int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
-			int mat2_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[2]);
+			int mat1_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[1]);
+			int mat2_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[2]);
 			if (mat1_idx >= 0 && mat2_idx >= 0) {
-				if ( equal_matrices(mats[mat1_idx],mats[mat2_idx]) ) {
+				if ( equal_matrices(mats[mat1_idx], mats[mat2_idx]) ) {
 					printf("SAME DATA IN BOTH\n");
 				}
 				else {
@@ -147,10 +148,13 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 	}
 	else if (strncmp(cmd->cmds[0],"shift",strlen("shift") + 1) == 0
 		&& cmd->num_cmds == 4) {
-		int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
+		int mat1_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[1]);
 		const int shift_value = atoi(cmd->cmds[3]);
 		if (mat1_idx >= 0 ) {
-			bitwise_shift_matrix(mats[mat1_idx],cmd->cmds[2][0], shift_value); //TODO ERROR CHECK NEEDED
+			if (bitwise_shift_matrix(mats[mat1_idx], cmd->cmds[2][0], shift_value)) {
+				perror("Matrix Shift failed\n");
+				return;
+			}
 			printf("Matrix (%s) has been shifted by %d\n", mats[mat1_idx]->name, shift_value);
 		}
 		else {
@@ -159,21 +163,20 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 		}
 
 	}
-	else if (strncmp(cmd->cmds[0],"read",strlen("read") + 1) == 0
+	else if (strncmp(cmd->cmds[0], "read", strlen("read") + 1) == 0
 		&& cmd->num_cmds == 2) {
 		Matrix_t* new_matrix = NULL;
-		if(! read_matrix(cmd->cmds[1],&new_matrix)) {
+		if(! read_matrix(cmd->cmds[1], &new_matrix)) {
 			printf("Read Failed\n");
 			return;
 		}	
 		
-		add_matrix_to_array(mats,new_matrix, num_mats); //TODO ERROR CHECK NEEDED
+		add_matrix_to_array(mats, new_matrix, num_mats);
 		printf("Matrix (%s) is read from the filesystem\n", cmd->cmds[1]);	
 	}
-	else if (strncmp(cmd->cmds[0],"write",strlen("write") + 1) == 0
-		&& cmd->num_cmds == 2) {
-		int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
-		if(! write_matrix(mats[mat1_idx]->name,mats[mat1_idx])) {
+	else if (strncmp(cmd->cmds[0], "write", strlen("write") + 1) == 0 && cmd->num_cmds == 2) {
+		int mat1_idx = find_matrix_given_name(mats, num_mats, cmd->cmds[1]);
+		if (! write_matrix(mats[mat1_idx]->name,mats[mat1_idx])) {
 			printf("Write Failed\n");
 			return;
 		}
@@ -181,59 +184,61 @@ void run_commands(Commands_t* cmd, Matrix_t** mats, unsigned int num_mats) {
 			printf("Matrix (%s) is wrote out to the filesystem\n", mats[mat1_idx]->name);
 		}
 	}
-	else if (strncmp(cmd->cmds[0], "create", strlen("create") + 1) == 0
-		&& strlen(cmd->cmds[1]) + 1 <= MATRIX_NAME_LEN && cmd->num_cmds == 4) {
+	else if (strncmp(cmd->cmds[0], "create", strlen("create") + 1) == 0 && strlen(cmd->cmds[1]) + 1 <= MATRIX_NAME_LEN && cmd->num_cmds == 4) {
 		Matrix_t* new_mat = NULL;
 		const unsigned int rows = atoi(cmd->cmds[2]);
 		const unsigned int cols = atoi(cmd->cmds[3]);
 
-		create_matrix(&new_mat,cmd->cmds[1],rows, cols); //TODO ERROR CHECK NEEDED
-		add_matrix_to_array(mats,new_mat,num_mats); // TODO ERROR CHECK NEEDED
+		if (!create_matrix(&new_mat, cmd->cmds[1], rows, cols)) {
+
+		}
+
+		add_matrix_to_array(mats,new_mat,num_mats);
 		printf("Created Matrix (%s,%u,%u)\n", new_mat->name, new_mat->rows, new_mat->cols);
-	}
+    }
 	else if (strncmp(cmd->cmds[0], "random", strlen("random") + 1) == 0
 		&& cmd->num_cmds == 4) {
 		int mat1_idx = find_matrix_given_name(mats,num_mats,cmd->cmds[1]);
 		const unsigned int start_range = atoi(cmd->cmds[2]);
 		const unsigned int end_range = atoi(cmd->cmds[3]);
-		random_matrix(mats[mat1_idx],start_range, end_range); //TODO ERROR CHECK NEEDED
+		if (!random_matrix(mats[mat1_idx], start_range, end_range)) {
+			perror("Matrix couldn't be randomized\n");
+			return;
+		}
 
 		printf("Matrix (%s) is randomized between %u %u\n", mats[mat1_idx]->name, start_range, end_range);
 	}
-	else {
-		printf("Not a command in this application\n");
-	}
+	else printf("Not a command in this application\n");
 
 }
 
-/*
- * PURPOSE: finds matrix with of given name
+/* PURPOSE: finds matrix with of given name
  * INPUTS: an address to a pointer of type Matrix_t, an unsigned integer for the number of matrices, and the name of the matrix
  * RETURN: upon success returns the index of the matrix, otherwise returns -1
  */
 unsigned int find_matrix_given_name(Matrix_t** mats, unsigned int num_mats, const char* target) {
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
-	for (int i = 0; i < num_mats; ++i) {
-		if (strncmp(mats[i]->name,target,strlen(mats[i]->name)) == 0) {
-			return i;
+	
+	// Checks that mats isn't empty
+	if (mats) {
+		for (int i = 0; i < num_mats && mats[i]; ++i) {
+			if (strncmp(mats[i]->name, target, strlen(mats[i]->name)) == 0) {
+				return i;
+			}
 		}
 	}
+	
 	return -1;
 }
 
-/*
- * PURPOSE: destroys remaining heap allocations
+/* PURPOSE: destroys remaining heap allocations
  * INPUTS: an address to a pointer of type Matrix_t and an unsigned integer for the number of matrices
  * RETURN: void
  */
 void destroy_remaining_heap_allocations(Matrix_t **mats, unsigned int num_mats) {
-	
-	//TODO ERROR CHECK INCOMING PARAMETERS
 
-	// COMPLETE MISSING MEMORY CLEARING HERE
-
-	for (unsigned int i = 0; i < num_mats; ++i) {
-		destroy_matrix(&mats[i]);
+	if (mats) {
+		for (unsigned int i = 0; i < num_mats; ++i) {
+			destroy_matrix(&mats[i]);
+		}
 	}
 }

@@ -31,7 +31,9 @@ void load_matrix(Matrix_t* m, unsigned int* data);
 
 bool create_matrix(Matrix_t** new_matrix, const char* name, const unsigned int rows, const unsigned int cols) {
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	if (!new_matrix || !name) {
+		return false;
+	}
 
 	*new_matrix = calloc(1, sizeof(Matrix_t));
 	if (!(*new_matrix)) {
@@ -59,12 +61,10 @@ bool create_matrix(Matrix_t** new_matrix, const char* name, const unsigned int r
  */
 void destroy_matrix(Matrix_t** m) {
 
-	if (m) {
-		if (*m) {
-			free((*m)->data);
-			free(*m);
-			*m = NULL;
-		}		
+	if (m && *m) {
+		free((*m)->data);
+		free(*m);
+		*m = NULL;
 	}
 }
 
@@ -74,9 +74,7 @@ void destroy_matrix(Matrix_t** m) {
  * INPUTS: two pointers of type Matrix_t
  * RETURN: true if equal, false if not equal
  */
-bool equal_matrices (Matrix_t* a, Matrix_t* b) {
-
-	//TODO ERROR CHECK INCOMING PARAMETERS
+bool equal_matrices(Matrix_t* a, Matrix_t* b) {
 	
 	if (!a || !b || !a->data || !b->data) {
 		return false;	
@@ -98,28 +96,26 @@ bool equal_matrices (Matrix_t* a, Matrix_t* b) {
 bool duplicate_matrix(Matrix_t* src, Matrix_t* dest) {
 
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
-	if (!src) {
+	if (!src || !dest) {
 		return false;
 	}
 	/*
 	 * copy over data
 	 */
 	unsigned int bytesToCopy = sizeof(unsigned int) * src->rows * src->cols;
-	memcpy(src->data,dest->data, bytesToCopy);	
+	memcpy(src->data, dest->data, bytesToCopy);	
 	return equal_matrices (src,dest);
 }
 
-//TODO FUNCTION COMMENT
-/*
- * PURPOSE: 
- * INPUTS: 
- * RETURN: 
+/* PURPOSE: shifts matrix a in a direction
+ * INPUTS:
+ *  a the matrix
+ *  direction a char for the direction
+ *  shift a number denoting the number os shifts
+ * RETURN:  
  */
 bool bitwise_shift_matrix(Matrix_t* a, char direction, unsigned int shift) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
 	if (!a) {
 		return false;
 	}
@@ -156,8 +152,6 @@ bool bitwise_shift_matrix(Matrix_t* a, char direction, unsigned int shift) {
  */
 bool add_matrices(Matrix_t* a, Matrix_t* b, Matrix_t* c) {
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
 	if (a->rows != b->rows && a->cols != b->cols) {
 		return false;
 	}
@@ -177,7 +171,10 @@ bool add_matrices(Matrix_t* a, Matrix_t* b, Matrix_t* c) {
  */
 void display_matrix(Matrix_t* m) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	if (!m) {
+		perror("Matrix Couldn't be returned\n");
+		return;
+	}
 
 
 	printf("\nMatrix Contents (%s):\n", m->name);
@@ -192,17 +189,17 @@ void display_matrix(Matrix_t* m) {
 
 }
 
-//TODO FUNCTION COMMENT
-/*
- * PURPOSE: 
+/* PURPOSE: read matrix
  * INPUTS: 
  *  matrix_input_filename the filename with the matrix to be read
- * RETURN: 
+ * RETURN: true upon success, false otherwise
  */
 bool read_matrix(const char* matrix_input_filename, Matrix_t** m) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
+	if (!m) {
+		perror("Matrix can't be read\n");
+		return false;
+	}
 
 	int fd = open(matrix_input_filename, O_RDONLY);
 	if (fd < 0) {
@@ -318,7 +315,7 @@ bool read_matrix(const char* matrix_input_filename, Matrix_t** m) {
 		return false;	
 	}
 
-	if (!create_matrix(m,name_buffer,rows,cols)) {
+	if (!create_matrix(m, name_buffer, rows, cols)) {
 		return false;
 	}
 
@@ -339,9 +336,12 @@ bool read_matrix(const char* matrix_input_filename, Matrix_t** m) {
  */
 bool write_matrix(const char* matrix_output_filename, Matrix_t* m) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	if (!m) {
+		perror("Matrix Can't be written");
+		return false;
+	}
 
-	int fd = open (matrix_output_filename, O_CREAT | O_RDWR | O_TRUNC, 0644);
+	int fd = open(matrix_output_filename, O_CREAT | O_RDWR | O_TRUNC, 0644);
 	/* ERROR HANDLING USING errorno*/
 	if (fd < 0) {
 		printf("FAILED TO CREATE/OPEN FILE FOR WRITING\n");
@@ -371,15 +371,15 @@ bool write_matrix(const char* matrix_output_filename, Matrix_t* m) {
 	offset += sizeof(unsigned int);	
 	memcpy(&output_buffer[offset], m->name,name_len);
 	offset += name_len;
-	memcpy(&output_buffer[offset],&m->rows,sizeof(unsigned int));
+	memcpy(&output_buffer[offset], &m->rows, sizeof(unsigned int));
 	offset += sizeof(unsigned int);
-	memcpy(&output_buffer[offset],&m->cols,sizeof(unsigned int));
+	memcpy(&output_buffer[offset], &m->cols, sizeof(unsigned int));
 	offset += sizeof(unsigned int);
-	memcpy (&output_buffer[offset],m->data,m->rows * m->cols * sizeof(unsigned int));
+	memcpy (&output_buffer[offset], m->data,m->rows * m->cols * sizeof(unsigned int));
 	offset += (m->rows * m->cols * sizeof(unsigned int));
 	output_buffer[numberOfBytes - 1] = EOF;
 
-	if (write(fd,output_buffer,numberOfBytes) != numberOfBytes) {
+	if (write(fd, output_buffer, numberOfBytes) != numberOfBytes) {
 		printf("FAILED TO WRITE MATRIX TO FILE\n");
 		if (errno == EACCES ) {
 			perror("DO NOT HAVE ACCESS TO FILE\n");
@@ -413,7 +413,15 @@ bool write_matrix(const char* matrix_output_filename, Matrix_t* m) {
  */
 bool random_matrix(Matrix_t* m, unsigned int start_range, unsigned int end_range) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
+	if (!m) {
+            perror("There is a problem with the matrix\n");
+            return false;
+        }
+
+        if (start_range > end_range) {
+            perror("Starting range must be less than or equal to the ending range\n");
+            return false;
+        }
 
 	for (unsigned int i = 0; i < m->rows; ++i) {
 		for (unsigned int j = 0; j < m->cols; ++j) {
@@ -433,8 +441,11 @@ bool random_matrix(Matrix_t* m, unsigned int start_range, unsigned int end_range
  */
 void load_matrix(Matrix_t* m, unsigned int* data) {
 	
-	//TODO ERROR CHECK INCOMING PARAMETERS
-	memcpy(m->data, data, m->rows * m->cols * sizeof(unsigned int));
+	if (m && data) {
+		memcpy(m->data, data, m->rows * m->cols * sizeof(unsigned int));
+	} else {
+		perror("Matrix Couldn't be Loaded");
+	}
 }
 
 /* PURPOSE: adds a matrix to an array
@@ -442,7 +453,7 @@ void load_matrix(Matrix_t* m, unsigned int* data) {
  *  mats
  *  new_matrix
  *  num_mats
- * RETURN: 
+ * RETURN: the position of the new matrix
  */
 unsigned int add_matrix_to_array(Matrix_t** mats, Matrix_t* new_matrix, unsigned int num_mats) {
 	
@@ -450,17 +461,20 @@ unsigned int add_matrix_to_array(Matrix_t** mats, Matrix_t* new_matrix, unsigned
 	static long int current_position = 0;
 	const long int pos = current_position % num_mats;
 
-	//TODO ERROR CHECK INCOMING PARAMETERS
-
 	if (!mats) {
-		// TODO: Complete Error Checking
-		printf("\n\nHolder AX48, add_matrix_to_array\n\n");
+		perror("Allocation Error\n");
+		return 0;
+	}
+
+	if (!new_matrix) {
+		perror("Allocation Error\n");
+		return 0;
 	}
 
 
 	if (mats[pos]) {
 		destroy_matrix(&mats[pos]);
-	} 
+	}
 	mats[pos] = new_matrix;
 	++current_position;
 	return pos;
